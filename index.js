@@ -17,9 +17,8 @@ app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
 
-const uri =process.env.MONGO_URI;
+const uri = process.env.MONGO_URI;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -34,7 +33,6 @@ async function run() {
     const database = client.db("profolio_data");
     const projects = database.collection("projects");
 
-
     // routes
     app.get("/", (req, res) => {
       res.send("Hello, World!");
@@ -47,8 +45,20 @@ async function run() {
     });
 
     app.get("/projects", async (req, res) => {
-      const cursor = projects.find({});
-      const result = await cursor.toArray();
+      const featuredId = "69ec8a45cf9773abc9d19ebb";
+
+      const featuredProject = await projects.findOne({
+        _id: new ObjectId(featuredId),
+      });
+
+      const otherProjects = await projects
+        .find({ _id: { $ne: new ObjectId(featuredId) } })
+        .toArray();
+
+      const result = featuredProject
+        ? [featuredProject, ...otherProjects]
+        : otherProjects;
+
       res.send(result);
     });
 
@@ -61,7 +71,7 @@ async function run() {
 
     // await client.db("admin").command({ ping: 1 });
     console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
+      "Pinged your deployment. You successfully connected to MongoDB!",
     );
   } finally {
   }
